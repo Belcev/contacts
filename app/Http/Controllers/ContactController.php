@@ -9,6 +9,7 @@ use Illuminate\Contracts\View\View;
 use App\Http\Requests\StoreContactRequest;
 use App\Http\Requests\UpdateContactRequest;
 use App\Models\Contact;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Schema;
 
 class ContactController extends Controller
@@ -18,6 +19,8 @@ class ContactController extends Controller
      */
     public function index(): Factory|View
     {
+
+        /** @var string|null $q */
         $q = request('q');
         $contacts = Contact::query()
             ->search($q)
@@ -34,7 +37,7 @@ class ContactController extends Controller
         return view('contacts.create');
     }
 
-    public function store(StoreContactRequest $request)
+    public function store(StoreContactRequest $request): RedirectResponse
     {
         Contact::create($request->validated());
 
@@ -53,7 +56,7 @@ class ContactController extends Controller
         return view('contacts.edit', ['contact' => $contact]);
     }
 
-    public function update(UpdateContactRequest $request, Contact $contact)
+    public function update(UpdateContactRequest $request, Contact $contact): RedirectResponse
     {
         $contact->update($request->validated());
         return redirect()
@@ -61,7 +64,7 @@ class ContactController extends Controller
             ->with('ok', 'Kontakt upraven.');
     }
 
-    public function destroy(Contact $contact)
+    public function destroy(Contact $contact): RedirectResponse
     {
         $contact->delete();
         return redirect()
@@ -69,7 +72,7 @@ class ContactController extends Controller
             ->with('ok', 'Kontakt smazán.');
     }
 
-    public function purge()
+    public function purge(): RedirectResponse
     {
         Schema::disableForeignKeyConstraints();
         Contact::truncate();

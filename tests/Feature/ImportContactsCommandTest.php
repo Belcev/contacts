@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use Illuminate\Support\Str;
+use Illuminate\Testing\PendingCommand;
 use Tests\TestCase;
 
 final class ImportContactsCommandTest extends TestCase
@@ -26,10 +27,12 @@ final class ImportContactsCommandTest extends TestCase
 
         file_put_contents($path, implode("\n", $xml));
 
-        $this->artisan('contacts:import', [
+        /** @var PendingCommand $import */
+        $import = $this->artisan('contacts:import', [
             'path' => $path,
             '--batch' => 2,
-        ])->assertExitCode(0);
+        ]);
+        $import->assertExitCode(0);
 
         $this->assertDatabaseHas('contacts', [
             'email' => 'john.doe@example.test', 'first_name' => 'John', 'last_name' => 'Doe',
@@ -56,10 +59,12 @@ final class ImportContactsCommandTest extends TestCase
         $xml2[] = '</items>';
         file_put_contents($path, implode("\n", $xml2));
 
-        $this->artisan('contacts:import', [
+        /** @var PendingCommand $import */
+        $import = $this->artisan('contacts:import', [
             'path' => $path,
             '--batch' => 1,
-        ])->assertExitCode(0);
+        ]);
+        $import->assertExitCode(0);
 
         $this->assertDatabaseHas('contacts', [
             'email' => 'john.doe@example.test', 'first_name' => 'Johnny', 'last_name' => 'Doe',
@@ -80,11 +85,14 @@ final class ImportContactsCommandTest extends TestCase
         file_put_contents($path, implode("\n", $xml));
         $this->assertFileExists($path);
 
-        $this->artisan('contacts:import', [
+
+        /** @var PendingCommand $import */
+        $import = $this->artisan('contacts:import', [
             'path' => $path,
             '--delete' => true,
             '--batch' => 10,
-        ])->assertExitCode(0);
+        ]);
+        $import->assertExitCode(0);
 
         $this->assertFileDoesNotExist($path);
         $this->assertDatabaseHas('contacts', [

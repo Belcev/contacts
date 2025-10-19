@@ -4,17 +4,30 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Support\Carbon;
 use Database\Factories\ContactFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * @method static ContactFactory<$this> factory($count = null, $state = [])
- * @method static Contact create(array $attributes = [])
- * @method static Builder|Contact query()
+ * App\Models\Contact
+ *
+ * @property int $id
+ * @property string $email
+ * @property string $first_name
+ * @property string $last_name
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ *
+ * @method static Builder<self> query()
+ * @method static Builder<self> newQuery()
+ * @method static Builder<self> newModelQuery()
+ * @method static self create(array<string, mixed> $attributes = [])
+ * @method static Factory<self> factory(?int $count = null, array<string, mixed>|callable $state = [])
  * @method static void truncate()
- * @method static \Illuminate\Database\Eloquent\Builder|Contact search(?string $term)
+ * @method static Builder<self> search(?string $term)
  */
 class Contact extends Model
 {
@@ -22,6 +35,9 @@ class Contact extends Model
     use HasFactory;
     protected $fillable = ['email','first_name','last_name'];
 
+    /**
+     * @param Builder<self> $q
+     */
     public function scopeSearch(Builder $q, ?string $term): void
     {
         if (in_array($term, [null, '', '0'], true)) {

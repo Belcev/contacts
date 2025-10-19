@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Models\Contact;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -26,6 +27,7 @@ class UpdateContactRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var Model $contact */
         $contact = $this->route('contact');
         if ($contact instanceof Contact) {
             $contact->getKey();

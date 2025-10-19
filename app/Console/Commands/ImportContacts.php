@@ -25,8 +25,8 @@ final class ImportContacts extends Command
     public function handle(): int
     {
         $path = (string) $this->argument('path');
-        $batchSize = (int) $this->option('batch') ?? self::DEFAULT_BATCH_SIZE;
-        $deleteAfter = (bool) $this->option('delete') ?? false;
+        $batchSize = (int) ($this->option('batch') ?? self::DEFAULT_BATCH_SIZE);
+        $deleteAfter = (bool) $this->option('delete');
 
         if (!is_readable($path)) {
             $this->error("Soubor nelze číst: {$path}");
@@ -99,6 +99,9 @@ final class ImportContacts extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * @param list<array<string, Carbon|string>> $rows
+     */
     private function flush(array $rows): void
     {
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use Override;
 use App\Models\Contact;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -14,6 +15,7 @@ class ContactFactory extends Factory
 {
     protected $model = Contact::class;
 
+    #[Override]
     public function definition(): array
     {
         return [
