@@ -42,4 +42,10 @@ return RectorConfig::configure()
         codeQuality: true,
     )
     ->withImportNames(removeUnusedImports: true)
-    ->withSetProviders(LaravelSetProvider::class);
+    ->withSetProviders(LaravelSetProvider::class)
+    ->withRules(
+        [
+            \Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector::class,
+        ]
+    )
+;

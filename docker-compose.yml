@@ -7,6 +7,7 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./:/var/www/html
+    user: "${UID}:${GID}"
     depends_on:
       - mysql
       - redis

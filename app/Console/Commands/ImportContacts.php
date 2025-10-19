@@ -12,7 +12,7 @@ use XMLReader;
 
 final class ImportContacts extends Command
 {
-    public const int DEFAULT_BATCH_SIZE = 2000;
+    public const int DEFAULT_BATCH_SIZE = 10000;
 
     protected $signature = 'contacts:import
         {path : Cesta k XML souboru}
