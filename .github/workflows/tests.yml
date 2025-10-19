@@ -80,28 +80,16 @@ jobs:
         run: npm run build
 
       - name: PHPStan (static analysis)
-        run: |
-          if [ -x vendor/bin/phpstan ]; then
-            vendor/bin/phpstan analyse --memory-limit=1G --error-format=github
-          else
-            echo "phpstan není nainstalován (vendor/bin/phpstan). Přeskakuji." && exit 1
-          fi
+        run: php -d memory_limit=4G vendor/bin/phpstan analyse --configuration=phpstan.neon
 
       - name: Rector (dry-run)
-        run: |
-          if [ -x vendor/bin/rector ]; then
-            vendor/bin/rector process --dry-run --no-progress
-          else
-            echo "rector není nainstalován (vendor/bin/rector). Přeskakuji." && exit 1
-          fi
+        run: vendor/bin/rector --dry-run
 
       - name: ECS (coding standard)
-        run: |
-          if [ -x vendor/bin/ecs ]; then
-            vendor/bin/ecs check . --no-progress --ansi
-          else
-            echo "ecs není nainstalován (vendor/bin/ecs). Přeskakuji." && exit 1
-          fi
+        run: vendor/bin/ecs check --config=ecs.php
+
+      - name: composer audit
+        run: composer audit --abandoned=ignore
 
       - name: Create environment file
         run: |
