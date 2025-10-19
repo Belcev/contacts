@@ -79,6 +79,30 @@ jobs:
           NODE_ENV: production
         run: npm run build
 
+      - name: PHPStan (static analysis)
+        run: |
+          if [ -x vendor/bin/phpstan ]; then
+            vendor/bin/phpstan analyse --memory-limit=1G --error-format=github
+          else
+            echo "phpstan není nainstalován (vendor/bin/phpstan). Přeskakuji." && exit 1
+          fi
+
+      - name: Rector (dry-run)
+        run: |
+          if [ -x vendor/bin/rector ]; then
+            vendor/bin/rector process --dry-run --no-progress
+          else
+            echo "rector není nainstalován (vendor/bin/rector). Přeskakuji." && exit 1
+          fi
+
+      - name: ECS (coding standard)
+        run: |
+          if [ -x vendor/bin/ecs ]; then
+            vendor/bin/ecs check . --no-progress --ansi
+          else
+            echo "ecs není nainstalován (vendor/bin/ecs). Přeskakuji." && exit 1
+          fi
+
       - name: Create environment file
         run: |
           cp -n .env.example .env || true
