@@ -1,20 +1,15 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+declare(strict_types=1);
+
+use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ImportController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::redirect('/', '/contacts');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/contacts/import', [ImportController::class, 'create'])->name('contacts.import');
+Route::post('/contacts/import', [ImportController::class, 'store'])->name('contacts.import.store');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-require __DIR__.'/auth.php';
+Route::resource('contacts', ContactController::class);
+Route::post('/contacts/purge', [ContactController::class, 'purge'])->name('contacts.purge');

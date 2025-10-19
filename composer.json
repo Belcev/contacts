@@ -10,6 +10,9 @@
   ],
   "require": {
     "php": "^8.4",
+    "ext-libxml": "*",
+    "ext-simplexml": "*",
+    "ext-xmlreader": "*",
     "laravel/framework": "^12.0"
   },
   "require-dev": {
@@ -17,8 +20,10 @@
     "fakerphp/faker": "^1.23",
     "larastan/larastan": "^3.0",
     "laravel/breeze": "^2.3",
+    "mockery/mockery": "^1.6",
+    "nunomaduro/collision": "^8.8",
     "phpstan/phpstan": "^2.0",
-    "phpunit/phpunit": "^12.0",
+    "phpunit/phpunit": "^12.4",
     "rector/rector": "^2.0",
     "slevomat/coding-standard": "8.22.1",
     "symplify/easy-coding-standard": "^12.5"
@@ -36,7 +41,7 @@
     }
   },
   "scripts": {
-    "cache:clear": [
+    "cache": [
       "php artisan cache:clear --no-interaction",
       "php artisan config:clear --no-interaction",
       "php artisan event:clear --no-interaction"
@@ -48,6 +53,16 @@
       "@php ./artisan migrate --force",
       "npm install",
       "npm run build"
+    ],
+    "phpstan": "php -d memory_limit=4G vendor/bin/phpstan analyse --configuration=phpstan.neon",
+    "phpstan:baseline": "php -d memory_limit=4G vendor/bin/phpstan analyse --generate-baseline",
+    "ecs": "vendor/bin/ecs check --config=ecs.php",
+    "ecs:fix": "vendor/bin/ecs check --config=ecs.php --fix",
+    "rector": "vendor/bin/rector --dry-run",
+    "rector:fix": "vendor/bin/rector",
+    "fix": [
+        "composer run rector:fix",
+        "composer run ecs:fix"
     ],
     "dev": [
       "Composer\\Config::disableProcessTimeout",

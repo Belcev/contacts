@@ -30,6 +30,11 @@ services:
       MYSQL_USER: laravel
       MYSQL_PASSWORD: secret
       MYSQL_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -proot --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     ports:
       - "3307:3306"
     volumes:
@@ -52,6 +57,24 @@ services:
       - "8081:80"
     depends_on:
       - mysql
+
+  worker:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    container_name: laravel-worker
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: >
+      bash -lc "php artisan config:clear
+      && php artisan queue:work --sleep=1"
+    restart: unless-stopped
 
 volumes:
   mysql_data:

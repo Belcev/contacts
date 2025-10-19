@@ -1,36 +1,45 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<!doctype html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <title>@yield('title','Kontakty')</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @vite(['resources/css/app.css','resources/js/app.js'])
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+          integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer" />
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+</head>
+<body class="bg-gray-50 text-gray-900">
+<div class="max-w-5xl mx-auto p-6">
+    <header class="mb-6 flex items-center justify-between">
+        <a href="{{ route('contacts.index') }}">
+            <h1 class="text-2xl font-semibold">Kontakty</h1>
+        </a>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('contacts.create') }}" class="px-3 py-2 rounded bg-blue-600 text-white">
+                <i class="fa-solid fa-user-plus"></i>
+            </a>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+            <a href="{{ route('contacts.import') }}" class="px-3 py-2 rounded border">
+                <i class="fa-solid fa-file-arrow-up"></i>
+            </a>
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
-
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
-
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
+            <form method="post" action="{{ route('contacts.purge') }}"
+                  class="inline-block"
+                  onsubmit="return confirm('Opravdu smazat VŠECHNY kontakty? Tuto akci nelze vrátit.');">
+                @csrf
+                <button class="rounded border bg-red-600 text-white px-3 py-2">
+                    <i class="fa-solid fa-broom"></i>
+                </button>
+            </form>
         </div>
-    </body>
+
+    </header>
+
+    @yield('content')
+</div>
+</body>
 </html>
