@@ -19,12 +19,16 @@ jobs:
           MYSQL_PASSWORD: secret
           MYSQL_ROOT_PASSWORD: root
         options: >-
-          --health-cmd "mysqladmin ping -h 127.0.0.1 -proot --silent"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 60
+          --health-cmd="mysqladmin ping -h localhost -proot --silent"
+          --health-interval=5s --health-timeout=3s --health-retries=20
         ports:
           - 3306:3306
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd="redis-cli ping || exit 1"
+          --health-interval=5s --health-timeout=3s --health-retries=20
 
     steps:
       - name: Checkout repository
@@ -65,8 +69,9 @@ jobs:
         run: |
           for i in {1..60}; do
             if mysqladmin ping -hmysql -uroot -proot --silent; then
-              echo "MySQL is up!"; break; fi;
-            echo "Waiting for MySQL..."; sleep 2;
+              echo "MySQL is up"; break
+            fi
+            echo "Waiting for MySQL ($i/60)..."; sleep 2
           done
 
       - name: Run migrations
