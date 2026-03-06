@@ -12,13 +12,10 @@ development time approx. 2MD
 
 
 
-
 setup:
+
+sudo chown 33:33 . -R
 
 docker-compose up --build -d
 
-docker exec -it laravel-app bash
-
-composer run setup
-
-http://localhost
+http://localhost:80
