@@ -73,8 +73,13 @@ services:
       redis:
         condition: service_started
     command: >
-      bash -lc "php artisan config:clear
-      && php artisan queue:work --sleep=1"
+      bash -c "
+      echo 'Čekám na dokončení setupu v app...'
+      until [ -d /var/www/html/vendor ];
+        do sleep 2;
+      done
+      php artisan config:clear
+      php artisan queue:work --sleep=1"
     restart: unless-stopped
 
 volumes:
