@@ -1,5 +1,7 @@
 FROM php:8.4.18-fpm
 
+RUN chown -R www-data:www-data .
+
 RUN apt-get update \
     && apt-get install -y \
         git \
