@@ -8,6 +8,9 @@ services:
     volumes:
       - ./:/var/www/html
     user: "${UID}:${GID}"
+    command: >
+      bash -c "if [ ! -d 'vendor' ]; then composer run setup; fi;
+      php-fpm"
     depends_on:
       - mysql
       - redis
@@ -73,13 +76,10 @@ services:
       redis:
         condition: service_started
     command: >
-      bash -c "
-      echo 'Čekám na dokončení setupu v app...'
-      until [ -d /var/www/html/vendor ];
-        do sleep 2;
-      done
-      php artisan config:clear
-      php artisan queue:work --sleep=1"
+      bash -c "echo 'Cekam na vendor...';
+      until [ -d /var/www/html/vendor ]; do echo 'Vendor stale chybi...'; sleep 5; done;
+      echo 'Vendor nalezen!';
+      php artisan config:clear && php artisan queue:work --sleep=1"
     restart: unless-stopped
 
 volumes:
