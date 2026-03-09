@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use SimpleXMLElement;
+use DOMElement;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -12,24 +12,22 @@ use XMLReader;
 
 final class ImportContacts extends Command
 {
-    public const int DEFAULT_BATCH_SIZE = 10000;
-
     protected $signature = 'contacts:import
-        {path : Cesta k XML souboru}
-        {--batch=2000 : Velikost dávky pro upsert}
-        {--delete : Po úspěšném importu soubor smazat}
-        ';
+        {path : Path to the XML file}
+        {--batch=2000 : Batch size for upsert}
+        {--delete : Delete the file after a successful import}
+    ';
 
-    protected $description = 'Streaming import kontaktů z XML';
+    protected $description = 'Stream-import contacts from an XML file';
 
     public function handle(): int
     {
         $path = (string) $this->argument('path');
-        $batchSize = (int) ($this->option('batch') ?? self::DEFAULT_BATCH_SIZE);
+        $batchSize = (int) $this->option('batch');
         $deleteAfter = (bool) $this->option('delete');
 
         if (!is_readable($path)) {
-            $this->error("Soubor nelze číst: {$path}");
+            $this->error("File is not readable: {$path}");
             return self::FAILURE;
         }
 
@@ -38,61 +36,65 @@ final class ImportContacts extends Command
         $reader = new XMLReader();
         $reader->open($path, null, LIBXML_NOWARNING | LIBXML_NOERROR | LIBXML_COMPACT);
 
-        $rows = [];
-        $now  = Carbon::now();
-        $done = 0;
+        $batch = [];
+        $now = Carbon::now();
+        $imported = 0;
 
-        $this->info("Start importu: {$path}");
+        $this->info("Importing: {$path}");
         $this->output->progressStart();
 
         while ($reader->read()) {
-            if ($reader->nodeType === XMLReader::ELEMENT && $reader->name === 'item') {
+            if ($reader->nodeType !== XMLReader::ELEMENT) {
+                continue;
+            }
+            if ($reader->name !== 'item') {
+                continue;
+            }
+            $node = $reader->expand();
+            if (!$node instanceof DOMElement) {
+                continue;
+            }
 
-                $xml = new SimpleXMLElement($reader->readOuterXML());
+            $email = trim($node->getElementsByTagName('email')->item(0)->textContent ?? '');
+            if ($email === '') {
+                continue;
+            }
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                continue;
+            }
 
-                $email = trim((string) ($xml->email ?? ''));
-                $first = trim((string) ($xml->first_name ?? ''));
-                $last  = trim((string) ($xml->last_name ?? ''));
-                if ($email === '') {
-                    continue;
-                }
-                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    continue;
-                }
+            $batch[] = [
+                'email'      => $email,
+                'first_name' => trim($node->getElementsByTagName('first_name')->item(0)->textContent ?? ''),
+                'last_name'  => trim($node->getElementsByTagName('last_name')->item(0)->textContent ?? ''),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
 
-                $rows[] = [
-                    'email'      => $email,
-                    'first_name' => $first,
-                    'last_name'  => $last,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-
-                if (count($rows) >= $batchSize) {
-                    $this->flush($rows);
-                    $done += count($rows);
-                    $rows = [];
-                    $this->output->progressAdvance($batchSize);
-                }
+            if (count($batch) >= $batchSize) {
+                $this->upsert($batch);
+                $imported += count($batch);
+                $this->output->progressAdvance(count($batch));
+                $batch = [];
             }
         }
 
-        if ($rows !== []) {
-            $this->flush($rows);
-            $done += count($rows);
-            $this->output->progressAdvance(count($rows));
+        if ($batch !== []) {
+            $this->upsert($batch);
+            $imported += count($batch);
+            $this->output->progressAdvance(count($batch));
         }
 
         $reader->close();
         $this->output->progressFinish();
 
-        $this->info("Hotovo. Zpracováno: {$done} ( dávka {$batchSize})");
+        $this->info("Done. Imported: {$imported}");
 
         if ($deleteAfter) {
             if (is_file($path) && @unlink($path)) {
-                $this->info("Soubor {$path} byl úspěšně smazán (--delete).");
+                $this->info("File deleted: {$path}");
             } else {
-                $this->warn("Soubor {$path} se nepodařilo smazat nebo neexistuje.");
+                $this->warn("Could not delete file: {$path}");
             }
         }
 
@@ -100,15 +102,14 @@ final class ImportContacts extends Command
     }
 
     /**
-     * @param list<array<string, Carbon|string>> $rows
+     * @param list<array<string, Carbon|string>> $batch
      */
-    private function flush(array $rows): void
+    private function upsert(array $batch): void
     {
-
         DB::table('contacts')->upsert(
-            $rows,
+            $batch,
             ['email'],
-            ['first_name','last_name','updated_at']
+            ['first_name', 'last_name', 'updated_at'],
         );
     }
 }

@@ -10,6 +10,7 @@
   ],
   "require": {
     "php": "^8.4",
+    "ext-dom": "*",
     "ext-libxml": "*",
     "ext-simplexml": "*",
     "ext-xmlreader": "*",
@@ -23,10 +24,10 @@
     "mockery/mockery": "^1.6",
     "nunomaduro/collision": "^8.8",
     "phpstan/phpstan": "^2.0",
-    "phpunit/phpunit": "^12.4",
+    "phpunit/phpunit": "^13.0",
     "rector/rector": "^2.0",
     "slevomat/coding-standard": "8.22.1",
-    "symplify/easy-coding-standard": "^12.5"
+    "symplify/easy-coding-standard": "^13.0"
   },
   "autoload": {
     "psr-4": {
@@ -41,6 +42,14 @@
     }
   },
   "scripts": {
+    "test:all": [
+      "composer run cache",
+      "composer audit",
+      "composer run phpstan",
+      "composer run ecs",
+      "composer run rector",
+      "composer run test"
+    ],
     "cache": [
       "php artisan cache:clear --no-interaction",
       "php artisan config:clear --no-interaction",
